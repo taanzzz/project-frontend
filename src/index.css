@@ -1,0 +1,42 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+
+/* 3D Bookshelf Styles */
+.bookshelf-container {
+  perspective: 1200px;
+}
+
+.book-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.5s;
+  width: 176px; /* w-44 */
+  height: 256px; /* h-64 */
+}
+
+.book-3d:hover {
+  transform: rotateY(-35deg) translateZ(20px);
+}
+
+.book-3d .book-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 2px 4px 4px 2px;
+  box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* বইয়ের স্পাইন (side) তৈরি */
+.book-3d::before {
+  content: '';
+  position: absolute;
+  width: 28px;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: #a89d8a;
+  transform: translateX(-100%) rotateY(90deg);
+  transform-origin: left;
+  border-radius: 4px 0 0 4px;
+}
