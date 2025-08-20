@@ -1,37 +1,25 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+// 📁 File: src/components/Shared/UserProfile.jsx
+
+import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
+import { FaSignOutAlt } from 'react-icons/fa';
 import { RiDashboardFill } from "react-icons/ri";
-import { NavLink } from 'react-router'; 
-import { AuthContext } from '../../contexts/AuthProvider';
-
+import { NavLink } from 'react-router';
+import useAuth from '../../hooks/useAuth';
+import useUserProfile from '../../hooks/useUserProfile';
 
 const UserProfile = () => {
-    const { user, logout } = useContext(AuthContext);
+    const { logout, loading: authLoading } = useAuth();
+    const { data: userProfile, isLoading: profileLoading } = useUserProfile(); 
+    
     const [open, setOpen] = useState(false);
-
-    
     const timeoutRef = useRef(null);
-    const [canHover, setCanHover] = useState(() => {
-        if (typeof window === 'undefined') return false;
-        return window.matchMedia('(hover: hover)').matches;
-    });
-    useEffect(() => {
-        const mq = window.matchMedia('(hover: hover)');
-        const handler = (e) => setCanHover(e.matches);
-        mq.addEventListener('change', handler);
-        return () => mq.removeEventListener('change', handler);
-    }, []);
-    const handleMouseEnter = () => canHover && (clearTimeout(timeoutRef.current), setOpen(true));
-    const handleMouseLeave = () => canHover && (timeoutRef.current = setTimeout(() => setOpen(false), 300));
-    const handleClick = () => !canHover && setOpen((prev) => !prev);
+
+    const handleMouseEnter = () => clearTimeout(timeoutRef.current, setOpen(true));
+    const handleMouseLeave = () => timeoutRef.current = setTimeout(() => setOpen(false), 300);
+    const handleClick = () => setOpen((prev) => !prev);
     
-
-    if (!user) return null;
-
-    const defaultPhoto = `https://ui-avatars.com/api/?name=${user.displayName || 'User'}&background=0D9488&color=fff`;
-
     const handleLogout = async () => {
         try {
             await logout();
@@ -46,12 +34,25 @@ const UserProfile = () => {
         hidden: { opacity: 0, scale: 0.95, y: -10 },
         visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' } }
     };
+    
+    // ✅ authLoading এবং profileLoading উভয়ই শেষ হওয়ার জন্য অপেক্ষা করা হচ্ছে
+    if (authLoading || profileLoading) {
+        return (
+            <div className="w-10 h-10 flex items-center justify-center">
+                <span className="loading loading-spinner loading-sm"></span>
+            </div>
+        );
+    }
+
+    if (!userProfile) return null;
+
+    const defaultPhoto = `https://ui-avatars.com/api/?name=${userProfile.name}&background=0D9488&color=fff`;
 
     return (
         <div className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
             <label tabIndex={0} className="btn btn-ghost btn-circle avatar" onClick={handleClick}>
                 <div className="w-10 rounded-full ring-2 ring-offset-base-100 ring-offset-2 ring-primary/50 hover:ring-primary transition-all">
-                    <img src={user.photoURL || defaultPhoto} alt="User profile" />
+                    <img src={userProfile.image || defaultPhoto} alt="User profile" />
                 </div>
             </label>
 
@@ -67,14 +68,12 @@ const UserProfile = () => {
                     >
                         <li className="p-2 border-b border-base-300/50">
                             <div className="flex flex-col items-start pointer-events-none">
-                                <span className="font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{user.displayName || 'Anonymous User'}</span>
-                                <span className="text-xs text-base-content/70">{user.email}</span>
+                                <span className="font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{userProfile.name}</span>
+                                <span className="text-xs text-base-content/70">{userProfile.email}</span>
                             </div>
                         </li>
-                        
-                        
                         <li>
-                            <NavLink to="/dashboard/profile" onClick={() => setOpen(false)} className="hover:text-primary">
+                            <NavLink to="/dashboard" onClick={() => setOpen(false)} className="hover:text-primary">
                                 <RiDashboardFill className="text-primary" />
                                 Dashboard
                             </NavLink>

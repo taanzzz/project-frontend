@@ -1,5 +1,7 @@
-import React from 'react';
-import { useParams } from 'react-router';
+// 📁 File: src/pages/ReadingPage.jsx
+
+import React, { useEffect } from 'react'; // ✅ useEffect ইম্পোর্ট করুন
+import { useParams } from 'react-router'; // ✅ সঠিক ইম্পোর্ট
 import { useQuery } from '@tanstack/react-query';
 import axiosSecure from './../api/Axios';
 import LoadingSpinner from './../components/Shared/LoadingSpinner';
@@ -15,6 +17,15 @@ const ReadingPage = () => {
         },
         enabled: !!id,
     });
+
+    // ✅ ভিউ কাউন্ট বাড়ানোর জন্য নতুন useEffect
+    useEffect(() => {
+        if (id) {
+            // API কল করা হচ্ছে, কিন্তু ফলাফলের জন্য অপেক্ষা করার প্রয়োজন নেই
+            axiosSecure.patch(`/api/content/${id}/view`)
+                .catch(err => console.error("Failed to update view count:", err));
+        }
+    }, [id]); // id পরিবর্তন হলেই এই ইফেক্টটি একবার রান হবে
 
     if (isLoading) return <LoadingSpinner />;
 
@@ -32,13 +43,13 @@ const ReadingPage = () => {
     }
 
     return (
-        // মূল কন্টেইনারটিকে এমনভাবে ডিজাইন করা হয়েছে যেন iframe টি সর্বোচ্চ জায়গা পায়
+        // মূল কন্টেইনারটিকে এমনভাবে ডিজাইন করা হয়েছে যেন iframe টি সর্বোচ্চ জায়গা পায়
         <div className="w-full h-screen bg-gray-900 flex items-center justify-center">
             
             <iframe
                 src={bookUrl}
                 title={book.title}
-                // ✅ পরিবর্তন: iframe-টি এখন সব ডিভাইসেই তার প্যারেন্টের ১০০% জায়গা নেবে
+                // ✅ পরিবর্তন: iframe-টি এখন সব ডিভাইসেই তার প্যারেন্টের ১০০% জায়গা নেবে
                 className="w-full h-full"
                 style={{ border: 'none' }}
                 allowFullScreen

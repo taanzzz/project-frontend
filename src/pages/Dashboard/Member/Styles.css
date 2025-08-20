@@ -1,0 +1,203 @@
+
+/* Modern, premium aesthetic with gradient and responsive design */
+:root {
+  --gradient-primary: linear-gradient(135deg, #6b7280, #1f2937);
+  --gradient-accent: linear-gradient(135deg, #7c3aed, #db2777);
+  --shadow-soft: 0 4px 15px rgba(0, 0, 0, 0.2);
+  --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.3);
+  --text-primary: #f3f4f6;
+  --text-secondary: #d1d5db;
+  --bg-card: #1f2937;
+  --bg-card-hover: #374151;
+}
+
+/* BookRow Styling */
+.book-row-container {
+  background: var(--gradient-primary);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: var(--shadow-soft);
+}
+
+.book-row-container:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  background: var(--bg-card-hover);
+}
+
+.book-row-container img {
+  width: 3.5rem;
+  height: 5rem;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-right: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.book-row-container img:hover {
+  transform: scale(1.05);
+}
+
+.book-row-container .font-bold {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.book-row-container .font-bold:hover {
+  color: #db2777;
+}
+
+.book-row-container .text-sm.text-base-content\/70 {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.book-row-container .badge {
+  background: var(--gradient-accent);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+}
+
+.book-row-container .btn-xs {
+  border-radius: 20px;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.75rem;
+  background: var(--gradient-accent);
+  color: var(--text-primary);
+  border: none;
+  transition: transform 0.2s ease, background 0.3s ease;
+}
+
+.book-row-container .btn-xs:hover {
+  transform: scale(1.1);
+  background: var(--gradient-primary);
+}
+
+.book-row-container .text-success {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.book-row-container .border-t {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Book3D Styling */
+.book-3d-container {
+  perspective: 1000px;
+  position: relative;
+}
+
+.book-3d-container .book-3d {
+  width: 120px;
+  height: 180px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
+
+.book-3d-container:hover .book-3d {
+  transform: rotateY(-20deg) translateZ(20px);
+}
+
+.book-3d-container .book-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: var(--shadow-soft);
+  transition: box-shadow 0.3s ease;
+}
+
+.book-3d-container:hover .book-cover {
+  box-shadow: var(--shadow-hover);
+}
+
+.book-3d-container .btn-xs {
+  background: var(--gradient-accent);
+  color: var(--text-primary);
+  border-radius: 20px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.85rem;
+  border: none;
+  transition: transform 0.2s ease, background 0.3s ease;
+}
+
+.book-3d-container .btn-xs:hover {
+  transform: scale(1.1);
+  background: var(--gradient-primary);
+}
+
+.book-3d-container .badge-success {
+  background: #10b981;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+}
+
+.book-3d-container .absolute.top-full {
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  padding: 1rem;
+  z-index: 30;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .book-row-container {
+    padding: 0.75rem;
+  }
+
+  .book-row-container img {
+    width: 3rem;
+    height: 4.5rem;
+  }
+
+  .book-row-container .font-bold {
+    font-size: 1rem;
+  }
+
+  .book-row-container .btn-xs {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+  }
+
+  .book-3d-container .book-3d {
+    width: 100px;
+    height: 150px;
+  }
+
+  .book-3d-container .absolute.top-full {
+    width: 100%;
+    left: 0;
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .book-row-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .book-row-container img {
+    margin-bottom: 0.5rem;
+  }
+
+  .book-row-container .flex-grow {
+    width: 100%;
+  }
+
+  .book-3d-container .book-3d {
+    width: 80px;
+    height: 120px;
+  }
+}

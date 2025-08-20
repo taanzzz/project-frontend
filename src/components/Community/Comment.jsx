@@ -1,5 +1,3 @@
-// 📁 File: src/components/Community/Comment.jsx
-
 import React, { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,6 +8,7 @@ import EmojiPicker from 'emoji-picker-react';
 import CommentInput from './CommentInput';
 import io from 'socket.io-client';
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import ReportModal from './ReportModal';
 
 const socket = io.connect(import.meta.env.VITE_API_URL || "http://localhost:5000");
 const defaultReactions = ['❤️', '😆', '😢', '😱', '🗿', '😡'];
@@ -21,23 +20,43 @@ const Comment = ({ comment, postId }) => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showReplyInput, setShowReplyInput] = useState(false);
     const [showReplies, setShowReplies] = useState(false);
-    
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+    const isDark = theme === 'dark';
+
     const isMyComment = user?.email === comment.authorInfo.email;
-    
+
+    // Sync theme with localStorage and data-theme
+    useEffect(() => {
+        const handleStorageChange = () => {
+            setTheme(localStorage.getItem('theme') || 'light');
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        const observer = new MutationObserver(() => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            setTheme(currentTheme);
+        });
+
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme'],
+        });
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            observer.disconnect();
+        };
+    }, []);
+
     const { data: replyCount = 0 } = useQuery({
         queryKey: ['replyCount', comment._id],
-        queryFn: async () => {
-            const { data } = await axiosSecure.get(`/api/comments/${comment._id}/replies`);
-            return data.length;
-        },
+        queryFn: async () => (await axiosSecure.get(`/api/comments/${comment._id}/replies`)).data.length,
     });
 
     const { data: replies = [], isLoading: repliesLoading } = useQuery({
         queryKey: ['replies', comment._id],
-        queryFn: async () => {
-            const { data } = await axiosSecure.get(`/api/comments/${comment._id}/replies`);
-            return data;
-        },
+        queryFn: async () => (await axiosSecure.get(`/api/comments/${comment._id}/replies`)).data,
         enabled: showReplies,
     });
 
@@ -71,78 +90,166 @@ const Comment = ({ comment, postId }) => {
 
     const topReactions = Object.entries(comment.reactions || {})
         .filter(([, value]) => value > 0).sort(([, a], [, b]) => b - a).slice(0, 3);
-
     const totalReactionCount = Object.values(comment.reactions || {}).reduce((a, b) => a + b, 0);
 
     return (
-        <div className={`flex items-start gap-3 w-full ${isMyComment ? 'justify-end' : 'justify-start'}`}>
+        <motion.div
+            className={`flex items-start gap-4 w-full ${isMyComment ? 'justify-end' : 'justify-start'} px-4 sm:px-6 py-4 ${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-pink-200/50'} rounded-3xl shadow-lg backdrop-blur-md transition-all duration-300`}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+        >
             {!isMyComment && (
                 <div className="avatar flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full"><img src={comment.authorInfo.avatar} alt="avatar" /></div>
+                    <div className={`w-12 h-12 rounded-full ring-2 ring-offset-2 ${isDark ? 'ring-indigo-400/50 ring-offset-gray-900' : 'ring-pink-400/50 ring-offset-white'}`}>
+                        <img src={comment.authorInfo.avatar} alt="avatar" />
+                    </div>
                 </div>
             )}
             
-            <div className={`flex flex-col w-full max-w-lg ${isMyComment ? 'items-end' : 'items-start'}`}>
-                <div className="relative">
-                    <div className={`p-3 inline-block ${isMyComment ? 'bg-primary text-primary-content rounded-t-2xl rounded-bl-2xl' : 'bg-base-200 text-base-content rounded-t-2xl rounded-br-2xl'}`}>
-                        {!isMyComment && <p className="font-bold text-sm">{comment.authorInfo.name}</p>}
-                        {comment.content && <p className="whitespace-pre-wrap text-base">{comment.content}</p>}
-                        {comment.stickerUrl && <img src={comment.stickerUrl} className="w-28 h-28 object-contain" alt="sticker" />}
+            <div className={`flex flex-col w-full max-w-3xl ${isMyComment ? 'items-end' : 'items-start'}`}>
+                <div className="relative w-full">
+                    <div className={`p-4 inline-block ${isMyComment ? `bg-gradient-to-r ${isDark ? 'from-indigo-500 to-purple-500' : 'from-pink-500 to-rose-500'} text-white rounded-t-2xl rounded-bl-2xl` : `${isDark ? 'bg-gray-800/50 border-white/20' : 'bg-white/80 border-pink-200/50'} text-gray-600 rounded-t-2xl rounded-br-2xl`} backdrop-blur-md border shadow-sm transition-all duration-300`}>
+                        {!isMyComment && (
+                            <p className={`font-bold text-lg ${isDark ? 'text-gray-100' : 'text-gray-600'}`}>
+                                {comment.authorInfo.name}
+                            </p>
+                        )}
+                        {comment.content && (
+                            <p className={`text-base ${isDark ? 'text-gray-300' : 'text-gray-600'} mt-2 leading-relaxed whitespace-pre-wrap`}>
+                                {comment.content}
+                            </p>
+                        )}
+                        {comment.stickerUrl && (
+                            <img src={comment.stickerUrl} className="w-28 h-28 object-contain mt-2" alt="sticker" />
+                        )}
                     </div>
 
                     {topReactions.length > 0 && (
-                         <div className={`absolute -bottom-3 flex items-center gap-1 bg-base-100/90 backdrop-blur-sm border border-base-300/20 px-2 py-0.5 rounded-full shadow-md ${isMyComment ? '-left-2' : '-right-2'}`}>
-                            {topReactions.map(([key]) => <span key={key} className="text-sm">{key}</span>)}
-                            {totalReactionCount > 0 && <span className="text-xs font-bold ml-1 text-base-content/70">{totalReactionCount}</span>}
+                        <div className={`absolute -bottom-3 flex items-center gap-1 ${isDark ? 'bg-white/10 border-white/20' : 'bg-white/90 border-pink-200/50'} backdrop-blur-md px-2 py-1 rounded-full shadow-md ${isMyComment ? '-left-2' : '-right-2'}`}>
+                            {topReactions.map(([key]) => (
+                                <span key={key} className="text-sm">{key}</span>
+                            ))}
+                            {totalReactionCount > 0 && (
+                                <span className={`text-xs font-bold ml-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    {totalReactionCount}
+                                </span>
+                            )}
                         </div>
                     )}
                 </div>
 
-                <div className="flex items-center gap-3 px-2 text-xs mt-2">
-                    <time className="opacity-60">{formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}</time>
+                <div className="flex items-center gap-4 px-2 text-sm mt-3">
+                    <time className={`${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                    </time>
                     <div className="relative">
-                        <button onClick={() => setShowReactionPopup(!showReactionPopup)} className="font-semibold text-base-content/60 hover:text-primary transition-colors">React</button>
+                        <motion.button
+                            onClick={() => setShowReactionPopup(!showReactionPopup)}
+                            className={`font-semibold ${isDark ? 'text-gray-300 hover:text-indigo-400' : 'text-gray-600 hover:text-pink-500'} transition-colors`}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            React
+                        </motion.button>
                         <AnimatePresence>
-                        {showReactionPopup && (
-                            <motion.div className="absolute bottom-6 flex items-center gap-2 bg-base-100/80 backdrop-blur-md p-2 rounded-full shadow-xl z-20 border border-base-300/20" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}>
-                                {defaultReactions.map(emoji => <button key={emoji} onClick={() => handleReaction(emoji)} className="text-2xl transform transition-transform hover:scale-125">{emoji}</button>)}
-                                <button onClick={() => {setShowEmojiPicker(true); setShowReactionPopup(false);}} className="btn btn-circle btn-xs btn-outline border-base-300">+</button>
-                            </motion.div>
-                        )}
+                            {showReactionPopup && (
+                                <motion.div
+                                    className={`absolute bottom-8 flex items-center gap-2 ${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-pink-200/50'} backdrop-blur-md p-2 rounded-full shadow-xl z-20`}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 10 }}
+                                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                                >
+                                    {defaultReactions.map((emoji) => (
+                                        <motion.button
+                                            key={emoji}
+                                            onClick={() => handleReaction(emoji)}
+                                            className="text-2xl transform transition-transform hover:scale-125"
+                                            whileHover={{ scale: 1.2 }}
+                                            whileTap={{ scale: 0.9 }}
+                                        >
+                                            {emoji}
+                                        </motion.button>
+                                    ))}
+                                    <motion.button
+                                        onClick={() => { setShowEmojiPicker(true); setShowReactionPopup(false); }}
+                                        className={`btn btn-circle btn-xs border-none ${isDark ? 'bg-gradient-to-r from-indigo-500 to-purple-500' : 'bg-gradient-to-r from-pink-500 to-rose-500'} text-white`}
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                    >
+                                        +
+                                    </motion.button>
+                                </motion.div>
+                            )}
                         </AnimatePresence>
                     </div>
-                    <button onClick={() => setShowReplyInput(!showReplyInput)} className="font-semibold text-base-content/60 hover:text-secondary transition-colors">Reply</button>
+                    <motion.button
+                        onClick={() => setShowReplyInput(!showReplyInput)}
+                        className={`font-semibold ${isDark ? 'text-gray-300 hover:text-indigo-400' : 'text-gray-600 hover:text-pink-500'} transition-colors`}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        Reply
+                    </motion.button>
+                    {!isMyComment && (
+                        <motion.button
+                            onClick={() => setIsReportModalOpen(true)}
+                            className={`font-semibold ${isDark ? 'text-gray-300 hover:text-red-400' : 'text-gray-600 hover:text-red-500'} transition-colors`}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            Report
+                        </motion.button>
+                    )}
                 </div>
-                {showEmojiPicker && ( <div className="absolute z-30 mt-2"><EmojiPicker onEmojiClick={(e) => handleReaction(e.emoji)} theme="auto"/></div> )}
+
+                {showEmojiPicker && (
+                    <div className="absolute z-30 mt-2">
+                        <EmojiPicker onEmojiClick={(e) => handleReaction(e.emoji)} theme={isDark ? 'dark' : 'light'} />
+                    </div>
+                )}
                 
                 {showReplyInput && (
-                    <div className="mt-2 w-full">
+                    <div className="mt-4 w-full pl-6 border-l-2 border-dashed ${isDark ? 'border-white/20' : 'border-pink-200/50'}">
                         <CommentInput postId={postId} parentId={comment._id} onCommentPosted={() => { setShowReplyInput(false); setShowReplies(true); }} />
                     </div>
                 )}
                 
                 {replyCount > 0 && !showReplyInput && (
-                    <button onClick={() => setShowReplies(!showReplies)} className="flex items-center gap-2 text-xs font-bold text-primary mt-3 hover:underline">
-                        {showReplies ? <FaChevronUp/> : <FaChevronDown/>}
+                    <motion.button
+                        onClick={() => setShowReplies(!showReplies)}
+                        className={`flex items-center gap-2 text-sm font-bold ${isDark ? 'text-indigo-400 hover:text-indigo-300' : 'text-pink-500 hover:text-pink-600'} mt-3`}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        {showReplies ? <FaChevronUp /> : <FaChevronDown />}
                         {showReplies ? 'Hide Replies' : `View ${replyCount} ${replyCount > 1 ? 'replies' : 'reply'}`}
-                    </button>
+                    </motion.button>
                 )}
                 
                 {showReplies && (
-                    <div className="mt-4 space-y-4 pt-4 w-full border-l-2 border-dashed border-base-300/70 pl-4">
-                        {repliesLoading ? <span className="loading loading-dots loading-sm"></span> : 
-                            replies.map(reply => <Comment key={reply._id} comment={reply} postId={postId} />)
-                        }
+                    <div className={`mt-4 space-y-4 pt-4 w-full pl-6 border-l-2 border-dashed ${isDark ? 'border-white/20' : 'border-pink-200/50'}`}>
+                        {repliesLoading ? (
+                            <span className="loading loading-dots loading-sm"></span>
+                        ) : (
+                            replies.map((reply) => <Comment key={reply._id} comment={reply} postId={postId} />)
+                        )}
                     </div>
                 )}
             </div>
             
-             {isMyComment && (
+            {isMyComment && (
                 <div className="avatar flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full"><img src={comment.authorInfo.avatar} alt="avatar" /></div>
+                    <div className={`w-12 h-12 rounded-full ring-2 ring-offset-2 ${isDark ? 'ring-indigo-400/50 ring-offset-gray-900' : 'ring-pink-400/50 ring-offset-white'}`}>
+                        <img src={comment.authorInfo.avatar} alt="avatar" />
+                    </div>
                 </div>
             )}
-        </div>
+
+            <ReportModal isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} contentId={comment._id} contentType="comment" />
+        </motion.div>
     );
 };
 

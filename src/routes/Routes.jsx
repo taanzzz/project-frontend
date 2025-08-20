@@ -1,164 +1,136 @@
 // 📁 File: src/routes/Routes.jsx
-import { createBrowserRouter, Navigate } from "react-router"; // <-- Navigate ইম্পোর্ট করুন
+
+import React, { lazy, Suspense } from 'react';
+import { createBrowserRouter, Navigate } from "react-router";
 import Root from './../layouts/Root';
-import Home from './../pages/Home/Home';
-import Login from './../pages/Login';
-import Register from './../pages/Register';
-import PrivateRoute from './PrivateRoute';
-import DashboardLayout from './../layouts/DashboardLayout';
-import Profile from './../pages/Dashboard/Common/Profile';
-import Library from './../pages/Library';
-import BookDetails from './../pages/BookDetails';
-import ContributorRoute from './ContributorRoute';
-import AddContent from './../pages/Dashboard/Contributor/AddContent';
-import MyContent from './../pages/Dashboard/Contributor/MyContent';
-import ManageContent from './../pages/Dashboard/Admin/ManageContent';
-import AdminRoute from './AdminRoute';
-import ReadingPage from './../pages/ReadingPage';
-import CommunityHub from './../pages/CommunityHub';
-import PublicProfile from './../pages/PublicProfile';
-import InboxPage from './../pages/InboxPage';
-import ChatWindow from './../components/Messaging/ChatWindow';
-import NotificationsPage from './../pages/NotificationsPage';
-import SinglePostPage from './../pages/SinglePostPage';
-import GamingZone from './../pages/GamingZone';
-import GamePlayer from './../pages/GamePlayer';
-import MindfulnessZone from './../pages/MindfulnessZone';
-import BreathingExercise from './../pages/BreathingExercise';
-import SoundBathPlayer from './../pages/Mindfulness/SoundBathPlayer';
-import BodyScanPlayer from './../pages/Mindfulness/BodyScanPlayer';
-import StoreLayout from './../layouts/StoreLayout';
-import StoreHome from './../components/Store/StoreHome';
-import BooksPage from './../components/Store/BooksPage';
-import ProductDetailsPage from './../components/Store/ProductDetailsPage';
-import CartPage from './../components/Store/CartPage';
-import CheckoutPage from "../components/Store/CheckoutPage";
+import LoadingSpinner from '../components/Shared/LoadingSpinner'; // Fallback UI
+
+// --- ✅ Shob Page Component Ekhon Lazy Loaded ---
+const Home = lazy(() => import('./../pages/Home/Home'));
+const Login = lazy(() => import('./../pages/Login'));
+const Register = lazy(() => import('./../pages/Register'));
+const Library = lazy(() => import('./../pages/Library'));
+const BookDetails = lazy(() => import('./../pages/BookDetails'));
+const ReadingPage = lazy(() => import('./../pages/ReadingPage'));
+const CommunityHub = lazy(() => import('./../pages/CommunityHub'));
+const PublicProfile = lazy(() => import('./../pages/PublicProfile'));
+const InboxPage = lazy(() => import('./../pages/InboxPage'));
+const ChatWindow = lazy(() => import('./../components/Messaging/ChatWindow'));
+const NotificationsPage = lazy(() => import('./../pages/NotificationsPage'));
+const SinglePostPage = lazy(() => import('./../pages/SinglePostPage'));
+const GamingZone = lazy(() => import('./../pages/GamingZone'));
+const GamePlayer = lazy(() => import('./../pages/GamePlayer'));
+const MindfulnessZone = lazy(() => import('./../pages/MindfulnessZone'));
+const BreathingExercise = lazy(() => import('./../pages/BreathingExercise'));
+const SoundBathPlayer = lazy(() => import('./../pages/Mindfulness/SoundBathPlayer'));
+const BodyScanPlayer = lazy(() => import('./../pages/Mindfulness/BodyScanPlayer'));
+const DonatePage = lazy(() => import('./../pages/DonatePage'));
+
+// Store
+const StoreLayout = lazy(() => import('./../layouts/StoreLayout'));
+const BooksPage = lazy(() => import('./../components/Store/BooksPage'));
+const ProductDetailsPage = lazy(() => import('./../components/Store/ProductDetailsPage'));
+const CartPage = lazy(() => import('./../components/Store/CartPage'));
+const CheckoutPage = lazy(() => import('./../components/Store/CheckoutPage'));
+const StoreHome = lazy(() => import('./../components/Store/StoreHome'));
+
+// Dashboard
+const DashboardLayout = lazy(() => import('./../layouts/DashboardLayout'));
+const Profile = lazy(() => import('./../pages/Dashboard/Common/Profile'));
+const PrivateRoute = lazy(() => import('./PrivateRoute'));
+const ContributorRoute = lazy(() => import('./ContributorRoute'));
+const AdminRoute = lazy(() => import('./AdminRoute'));
+
+// Member Dashboard
+const MyShelf = lazy(() => import('./../pages/Dashboard/Member/MyShelf'));
+const MyActivity = lazy(() => import('./../pages/Dashboard/Member/MyActivity'));
+const Settings = lazy(() => import('./../pages/Dashboard/Member/Settings'));
+const OrderHistory = lazy(() => import('./../pages/Dashboard/Member/OrderHistory'));
+
+// Contributor Dashboard
+const ContributorDashboard = lazy(() => import("../pages/Dashboard/Contributor/ContributorDashboard"));
+const AddContent = lazy(() => import('./../pages/Dashboard/Contributor/AddContent'));
+const MyContent = lazy(() => import('./../pages/Dashboard/Contributor/MyContent'));
+const ContentAnalytics = lazy(() => import("../pages/Dashboard/Contributor/ContentAnalytics"));
+
+// Admin Dashboard
+const AdminDashboard = lazy(() => import('./../pages/Dashboard/Admin/AdminDashboard'));
+const ManageContent = lazy(() => import('./../pages/Dashboard/Admin/ManageContent'));
+const ManageUsers = lazy(() => import('./../pages/Dashboard/Admin/ManageUsers'));
+const CommunityModeration = lazy(() => import('./../pages/Dashboard/Admin/CommunityModeration'));
+const ManageApplications = lazy(() => import("../pages/Dashboard/Admin/ManageApplications"));
 import AffiliatePicksPage from './../components/Store/AffiliatePicksPage';
 import StationeryPage from './../components/Store/StationeryPage';
 import ShoppingBagPage from './../components/Store/ShoppingBagPage';
-import SponsorshipPage from './../pages/SponsorshipPage';
-import SellWithUsPage from './../pages/SellWithUsPage';
-import MyShelf from './../pages/Dashboard/Member/MyShelf';
 
 
 
-
+// ✅ Lazy Loading'er jonno ekta wrapper component
+const SuspenseWrapper = ({ children }) => (
+    <Suspense fallback={<LoadingSpinner />}>
+        {children}
+    </Suspense>
+);
 
 export const router = createBrowserRouter([
     {
         path: "/",
         element: <Root />,
         children: [
-            { index: true, element: <Home /> },
-            { path: "login", element: <Login /> },
-            { path: "register", element: <Register /> },
-            { path: "library", element: <Library /> },
-            { path: "library/item/:id", element: <PrivateRoute><BookDetails /></PrivateRoute> },
-            { path: "/read/:id", element: <PrivateRoute><ReadingPage /></PrivateRoute> },
-           
-         
-         { 
-                path: "community-hub", 
-                element: <PrivateRoute><CommunityHub /></PrivateRoute> 
-            },
-            { 
-                path: "profiles/:id", // ✅ এই রুটটি অন্য ব্যবহারকারীদের প্রোফাইল দেখাবে
-                element: <PrivateRoute><PublicProfile /></PrivateRoute> 
-            },
-
-            {
-    path: "gaming-zone",
-    element: <PrivateRoute><GamingZone /></PrivateRoute>,
-},
-{
-    path: "gaming-zone/:id",
-    element: <PrivateRoute><GamePlayer /></PrivateRoute>,
-},
-
-
-
-            { 
-    path: "messages", 
-    element: <PrivateRoute><InboxPage /></PrivateRoute> 
-},
-{
-    path: "messages/:conversationId",
-    element: <PrivateRoute><ChatWindow /></PrivateRoute>
-},
-{
-                path: "notifications",
-                element: <PrivateRoute><NotificationsPage /></PrivateRoute>
-            },
-            {
-    path: "post/:id",
-    element: <PrivateRoute><SinglePostPage /></PrivateRoute>
-},
-{
-    path: "mindfulness-zone",
-    element: <PrivateRoute><MindfulnessZone /></PrivateRoute>,
-},
-{
-    path: "mindfulness/breathing/:id",
-    element: <PrivateRoute><BreathingExercise /></PrivateRoute>,
-},
-{
-    path: "mindfulness/sound-bath/:id",
-    element: <PrivateRoute><SoundBathPlayer /></PrivateRoute>,
-},
-{
-    path: "mindfulness/body-scan/:id",
-    element: <PrivateRoute><BodyScanPlayer /></PrivateRoute>,
-},
-
+            { index: true, element: <SuspenseWrapper><Home /></SuspenseWrapper> },
+            { path: "login", element: <SuspenseWrapper><Login /></SuspenseWrapper> },
+            { path: "register", element: <SuspenseWrapper><Register /></SuspenseWrapper> },
+            { path: "library", element: <SuspenseWrapper><Library /></SuspenseWrapper> },
+            { path: "library/item/:id", element: <SuspenseWrapper><PrivateRoute><BookDetails /></PrivateRoute></SuspenseWrapper> },
+            { path: "read/:id", element: <SuspenseWrapper><PrivateRoute><ReadingPage /></PrivateRoute></SuspenseWrapper> },
+            { path: "donate", element: <SuspenseWrapper><PrivateRoute><DonatePage /></PrivateRoute></SuspenseWrapper> },
+            { path: "community-hub", element: <SuspenseWrapper><PrivateRoute><CommunityHub /></PrivateRoute></SuspenseWrapper> },
+            { path: "profiles/:id", element: <SuspenseWrapper><PrivateRoute><PublicProfile /></PrivateRoute></SuspenseWrapper> },
+            { path: "gaming-zone", element: <SuspenseWrapper><PrivateRoute><GamingZone /></PrivateRoute></SuspenseWrapper> },
+            { path: "gaming-zone/:id", element: <SuspenseWrapper><PrivateRoute><GamePlayer /></PrivateRoute></SuspenseWrapper> },
+            { path: "messages", element: <SuspenseWrapper><PrivateRoute><InboxPage /></PrivateRoute></SuspenseWrapper> },
+            { path: "messages/:conversationId", element: <SuspenseWrapper><PrivateRoute><ChatWindow /></PrivateRoute></SuspenseWrapper> },
+            { path: "notifications", element: <SuspenseWrapper><PrivateRoute><NotificationsPage /></PrivateRoute></SuspenseWrapper> },
+            { path: "post/:id", element: <SuspenseWrapper><PrivateRoute><SinglePostPage /></PrivateRoute></SuspenseWrapper> },
+            { path: "mindfulness-zone", element: <SuspenseWrapper><PrivateRoute><MindfulnessZone /></PrivateRoute></SuspenseWrapper> },
+            { path: "mindfulness/breathing/:id", element: <SuspenseWrapper><PrivateRoute><BreathingExercise /></PrivateRoute></SuspenseWrapper> },
+            { path: "mindfulness/sound-bath/:id", element: <SuspenseWrapper><PrivateRoute><SoundBathPlayer /></PrivateRoute></SuspenseWrapper> },
+            { path: "mindfulness/body-scan/:id", element: <SuspenseWrapper><PrivateRoute><BodyScanPlayer /></PrivateRoute></SuspenseWrapper> },
         ],
     },
     {
         path: "dashboard",
-        element: <PrivateRoute><DashboardLayout /></PrivateRoute>,
+        element: <SuspenseWrapper><PrivateRoute><DashboardLayout /></PrivateRoute></SuspenseWrapper>,
         children: [
-            // --- সমাধান: ড্যাশবোর্ডের ডিফল্ট রুট হিসেবে প্রোফাইল পেজ ---
-            { 
-                index: true, 
-                element: <Navigate to="/dashboard/profile" replace /> 
-            },
-            { 
-                path: "profile", 
-                element: <Profile /> 
-            },
-            {
-    path: "my-shelf",
-    element: <MyShelf /> // MemberRoute দিয়েও মুড়ে দিতে পারেন
-},
-
-            {
-    path: "add-content",
-    element: <ContributorRoute><AddContent /></ContributorRoute>
-},
-{
-    path: "my-content",
-    element: <ContributorRoute><MyContent /></ContributorRoute>
-},
-{ path: "manage-content", element: <AdminRoute><ManageContent /></AdminRoute> },
+            { index: true, element: <Navigate to="/dashboard/profile" replace /> },
+            { path: "profile", element: <SuspenseWrapper><Profile /></SuspenseWrapper> },
+            { path: "contributor-dashboard", element: <SuspenseWrapper><ContributorRoute><ContributorDashboard /></ContributorRoute></SuspenseWrapper> },
+            { path: "manage-applications", element: <SuspenseWrapper><AdminRoute><ManageApplications /></AdminRoute></SuspenseWrapper> },
+            { path: "content-analytics", element: <SuspenseWrapper><ContributorRoute><ContentAnalytics /></ContributorRoute></SuspenseWrapper> },
+            { path: "admin-dashboard", element: <SuspenseWrapper><AdminRoute><AdminDashboard /></AdminRoute></SuspenseWrapper> },
+            { path: "manage-users", element: <SuspenseWrapper><AdminRoute><ManageUsers /></AdminRoute></SuspenseWrapper> },
+            { path: "manage-content", element: <SuspenseWrapper><AdminRoute><ManageContent /></AdminRoute></SuspenseWrapper> },
+            { path: "community-moderation", element: <SuspenseWrapper><AdminRoute><CommunityModeration /></AdminRoute></SuspenseWrapper> },
+            { path: "my-shelf", element: <SuspenseWrapper><MyShelf /></SuspenseWrapper> },
+            { path: "my-activity", element: <SuspenseWrapper><MyActivity /></SuspenseWrapper> },
+            { path: "order-history", element: <SuspenseWrapper><OrderHistory /></SuspenseWrapper> },
+            { path: "settings", element: <SuspenseWrapper><Settings /></SuspenseWrapper> },
+            { path: "add-content", element: <SuspenseWrapper><ContributorRoute><AddContent /></ContributorRoute></SuspenseWrapper> },
+            { path: "my-content", element: <SuspenseWrapper><ContributorRoute><MyContent /></ContributorRoute></SuspenseWrapper> },
         ]
     },
-{
+    {
         path: "store",
-        element: <StoreLayout />,
+        element: <SuspenseWrapper><StoreLayout /></SuspenseWrapper>,
         children: [
-            {
-                index: true,
-                element: <StoreHome />
-            },
-            { path: "books", element: <BooksPage /> },
-        { path: "products/:id", element: <PrivateRoute><ProductDetailsPage /></PrivateRoute> },
-        { path: "cart", element: <PrivateRoute><CartPage /></PrivateRoute> },
-        { path: "checkout", element: <PrivateRoute><CheckoutPage /></PrivateRoute> },
-        { path: "affiliates", element: <AffiliatePicksPage /> },
-        { path: "stationery", element: <StationeryPage /> },
-        { path: "bag", element: <ShoppingBagPage /> },
-         { path: "sponsorship", element: <SponsorshipPage /> }, // ✅ নতুন রাউট যোগ করুন
-            { path: "sell-with-us", element: <SellWithUsPage /> },
+            { index: true, element: <SuspenseWrapper><StoreHome /></SuspenseWrapper> },
+            { path: "books", element: <SuspenseWrapper><BooksPage /></SuspenseWrapper> },
+            { path: "products/:id", element: <SuspenseWrapper><PrivateRoute><ProductDetailsPage /></PrivateRoute></SuspenseWrapper> },
+            { path: "cart", element: <SuspenseWrapper><PrivateRoute><CartPage /></PrivateRoute></SuspenseWrapper> },
+            { path: "checkout", element: <SuspenseWrapper><PrivateRoute><CheckoutPage /></PrivateRoute></SuspenseWrapper> },
+            { path: "affiliates", element: <SuspenseWrapper><PrivateRoute><AffiliatePicksPage /></PrivateRoute></SuspenseWrapper> },
+            { path: "stationery", element: <SuspenseWrapper><PrivateRoute><StationeryPage /></PrivateRoute></SuspenseWrapper>},
+            { path: "bag", element: <SuspenseWrapper><PrivateRoute><ShoppingBagPage /></PrivateRoute></SuspenseWrapper>}
         ]
     }
 ]);
-    

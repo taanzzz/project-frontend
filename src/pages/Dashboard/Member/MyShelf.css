@@ -1,0 +1,109 @@
+/* src/pages/MyShelf/MyShelf.css */
+.bookshelf-container {
+  perspective: 1200px;
+  min-height: 300px;
+  position: relative;
+}
+
+/* 3D book */
+.book-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.45s ease-in-out;
+  width: 160px;
+  height: 240px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.book-3d:hover {
+  transform: rotateY(-30deg) translateZ(30px) scale(1.05);
+}
+
+.book-3d .book-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 8px 8px 25px rgba(0, 0, 0, 0.45), inset -2px 0 5px rgba(0, 0, 0, 0.2);
+  display: block;
+}
+
+/* spine */
+.book-3d::before {
+  content: '';
+  position: absolute;
+  width: 30px;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: linear-gradient(90deg, #8b7b5e, #a89d8a);
+  transform: translateX(-100%) rotateY(90deg);
+  transform-origin: left;
+  border-radius: 8px 0 0 8px;
+  box-shadow: inset 2px 0 5px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+
+/* bottom */
+.book-3d::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 30px;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(180deg, #ffffff, #e0e0e0);
+  transform: translateZ(-30px) rotateX(90deg);
+  transform-origin: bottom;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+/* responsive sizes */
+@media (max-width: 768px) {
+  .book-3d {
+    width: 120px;
+    height: 180px;
+    transform: rotateY(-15deg);
+  }
+  .book-3d:hover {
+    transform: rotateY(-20deg) translateZ(20px) scale(1.03);
+  }
+  .book-3d::before { width: 24px; }
+  .book-3d::after { height: 24px; }
+}
+
+@media (max-width: 480px) {
+  .book-3d {
+    width: 100px;
+    height: 150px;
+    transform: rotateY(-10deg);
+  }
+  .book-3d:hover {
+    transform: rotateY(-15deg) translateZ(15px) scale(1.02);
+  }
+  .book-3d::before { width: 20px; }
+  .book-3d::after { height: 20px; }
+}
+
+/* scrollbars */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+
+/* Swiper tweaks */
+.mySwiper { padding-bottom: 40px; }
+.mySwiper .swiper-pagination-bullet { background: rgba(0,0,0,0.35); }
+.mySwiper .swiper-pagination-bullet-active { background: var(--p, #9d4edd); }
+.mySwiper .swiper-button-next, .mySwiper .swiper-button-prev { color: var(--p, #9d4edd); }
+
+/* small utility for modal when fixed */
+@media (min-width: 768px) {
+  /* ensure note panel placed nicely on larger screens */
+  .book-3d + .fixed, .book-3d + .absolute { z-index: 40; }
+}
+
+/* make sure dialog modal backdrop visible */
+.modal-backdrop { display: none; } /* hide default - daisyUI may manage backdrop */

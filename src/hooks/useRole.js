@@ -11,8 +11,8 @@ const useRole = () => {
         role: userRole,
         isRoleLoading: loading,
         isAdmin: userRole === 'Admin',
-        isContributor: userRole === 'Contributor', // <-- সমাধান: সঠিক নাম
-        isMember: userRole === 'Member', // <-- সমাধান: সঠিক নাম
+        isContributor: userRole === 'Contributor', 
+        isMember: userRole === 'Member', 
     };
 };
 export default useRole;

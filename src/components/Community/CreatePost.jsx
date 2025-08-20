@@ -1,47 +1,72 @@
-// src/components/Community/CreatePost.jsx
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import axiosSecure from './../../api/Axios';
+import axiosSecure from '../../api/Axios';
+import { motion } from 'framer-motion';
 
 const CreatePost = () => {
     const [content, setContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+    const isDark = theme === 'dark';
 
-    // src/components/Community/CreatePost.jsx
+    // Sync theme with localStorage and data-theme
+    useEffect(() => {
+        const handleStorageChange = () => {
+            setTheme(localStorage.getItem('theme') || 'light');
+        };
 
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (content.trim().length < 10) {
-        return toast.error("Post must be at least 10 characters long.");
-    }
-    setIsSubmitting(true);
-    try {
-        const response = await axiosSecure.post('/api/posts', { content });
-        
-        if (response.status === 201) {
-            toast.success("Post submitted successfully for review!");
-            setContent('');
+        window.addEventListener('storage', handleStorageChange);
+        const observer = new MutationObserver(() => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            setTheme(currentTheme);
+        });
+
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme'],
+        });
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            observer.disconnect();
+        };
+    }, []);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (content.trim().length < 10) {
+            return toast.error("Post must be at least 10 characters long.");
         }
-    } catch (error) {
-        // ✅ এখানে পরিবর্তন করা হয়েছে
-        console.error("Post creation error:", error.response); // ডিবাগিং এর জন্য
-        // ব্যাকএন্ড থেকে পাঠানো নির্দিষ্ট মেসেজটি দেখানো হচ্ছে
-        const errorMessage = error.response?.data?.message || "Failed to create post.";
-        toast.error(errorMessage);
-    } finally {
-        setIsSubmitting(false);
-    }
-};
+        setIsSubmitting(true);
+        try {
+            const response = await axiosSecure.post('/api/posts', { content });
+            
+            if (response.status === 201) {
+                toast.success("Post submitted successfully for review!");
+                setContent('');
+            }
+        } catch (error) {
+            console.error("Post creation error:", error.response);
+            const errorMessage = error.response?.data?.message || "Failed to create post.";
+            toast.error(errorMessage);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
-        <div className="bg-base-100/80 backdrop-blur-sm border border-base-300/20 p-6 sm:p-8 rounded-2xl shadow-2xl max-w-3xl mx-auto mb-12">
-            <h3 className="font-extrabold text-2xl md:text-3xl mb-6 pb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        <motion.div
+            className={`p-6 sm:p-8 ${isDark ? 'bg-gray-900/80 border-white/20' : 'bg-white/80 border-pink-200/50'} backdrop-blur-md rounded-3xl shadow-lg ${isDark ? 'shadow-indigo-500/30' : 'shadow-pink-500/30'} max-w-3xl mx-auto mb-12 transition-all duration-300`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+        >
+            <h3 className={`font-extrabold text-2xl md:text-3xl mb-6 pb-2 bg-clip-text text-transparent ${isDark ? 'bg-gradient-to-r from-indigo-400 to-purple-400' : 'bg-gradient-to-r from-pink-500 to-rose-500'} text-shadow-sm`}>
                 Share Your Knowledge
             </h3>
             <form onSubmit={handleSubmit}>
                 <textarea
-                    className="w-full p-4 rounded-xl bg-base-200/60 border-2 border-transparent text-base-content placeholder:text-base-content/50 focus:bg-base-200 focus:border-primary focus:outline-none focus:ring-0 transition-all duration-300 ease-in-out"
+                    className={`w-full p-4 rounded-xl ${isDark ? 'bg-gray-800/50 text-gray-300 border-white/20' : 'bg-white/80 text-gray-600 border-pink-200/50'} backdrop-blur-md text-lg placeholder:${isDark ? 'text-gray-400' : 'text-gray-500'} focus:outline-none focus:ring-2 ${isDark ? 'focus:ring-indigo-500' : 'focus:ring-pink-500'} transition-all duration-300 ease-in-out`}
                     placeholder="What's on your mind? Share something educational, inspiring, or positive with the community..."
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
@@ -49,16 +74,18 @@ const handleSubmit = async (e) => {
                     disabled={isSubmitting}
                 ></textarea>
                 <div className="mt-5 flex justify-end">
-                    <button 
-                        type="submit" 
-                        className="btn border-none text-white font-bold bg-gradient-to-r from-primary to-secondary w-full sm:w-auto transform hover:-translate-y-1 transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl shadow-secondary/20 hover:shadow-secondary/40 disabled:bg-gradient-to-r disabled:from-base-300 disabled:to-base-300/80 disabled:shadow-none disabled:transform-none" 
+                    <motion.button
+                        type="submit"
+                        className={`btn border-none text-white font-bold ${isDark ? 'bg-gradient-to-r from-indigo-500 to-purple-500' : 'bg-gradient-to-r from-pink-500 to-rose-500'} ${isDark ? 'hover:from-indigo-600 hover:to-purple-600' : 'hover:from-pink-600 hover:to-rose-600'} w-full sm:w-auto ${isDark ? 'shadow-indigo-500/30' : 'shadow-pink-500/30'} hover:shadow-xl disabled:bg-gray-400 disabled:shadow-none transition-all duration-300 ease-in-out rounded-xl`}
                         disabled={isSubmitting}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                     >
                         {isSubmitting ? <span className="loading loading-spinner"></span> : 'Post'}
-                    </button>
+                    </motion.button>
                 </div>
             </form>
-        </div>
+        </motion.div>
     );
 };
 

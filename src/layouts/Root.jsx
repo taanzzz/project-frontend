@@ -1,32 +1,44 @@
-import { Outlet, useLocation } from "react-router"; // 🔔 useLocation ইম্পোর্ট করুন
+// 📁 File: src/layouts/Root.jsx
+
+import React, { Suspense } from 'react';
+import { Outlet, useLocation } from "react-router"; // ✅ ইম্পোর্ট ঠিক করা হয়েছে
 import Navbar from './../components/Shared/Navbar';
 import ScrollToTop from './../components/Shared/ScrollToTop';
 import Footer from './../components/Shared/Footer';
+import Chatbot from "../components/Shared/Chatbot";
+import LoadingSpinner from '../components/Shared/LoadingSpinner';
 
 const Root = () => {
-    const location = useLocation();
+ const location = useLocation();
 
-    // চেক করা হচ্ছে, বর্তমান URL-এর পাথ '/read/' দিয়ে শুরু হচ্ছে কিনা
-    const isReadingPage = location.pathname.startsWith('/read/');
+ const isHomePage = location.pathname === '/';
+ const isReadingPage = location.pathname.startsWith('/read/');
 
-    return (
-        <div className="min-h-screen flex flex-col overflow-x-hidden">
-            
-            {/* যদি রিডিং পেইজ না হয়, তবেই Navbar দেখানো হবে */}
-            {!isReadingPage && <Navbar />}
+    // ✅ নতুন: যেসকল পেজে ফুটার দেখানো হবে না তাদের তালিকা
+    const noFooterPaths = ['/login', '/register', '/community-hub'];
+    const hideFooterOnSpecificPages = noFooterPaths.includes(location.pathname);
 
-            <ScrollToTop />
+ return (
+  <div className="min-h-screen flex flex-col overflow-x-hidden">
+   
+   {!isReadingPage && <Navbar />}
+   
+   {/* শুধুমাত্র হোমপেজে থাকলেই Chatbot দেখানো হবে */}
+   {isHomePage && <Chatbot />}
 
-            {/* mt-17 ক্লাসটি শুধু Navbar থাকলে প্রযোজ্য হতে পারে, তাই এটিকে শর্তসাপেক্ষে দেওয়া ভালো */}
-            <div className={`flex-grow ${!isReadingPage ? 'mt-17' : ''}`}>
-                <Outlet />
-            </div>
+   <ScrollToTop />
 
-            {/* যদি রিডিং পেইজ না হয়, তবেই Footer দেখানো হবে */}
-            {!isReadingPage && <Footer />}
-            
-        </div>
-    );
+   <div className={`flex-grow ${!isReadingPage ? 'mt-17' : ''}`}>
+    <Suspense fallback={<LoadingSpinner />}>
+     <Outlet />
+    </Suspense>
+   </div>
+
+   {/* ✅ নতুন শর্ত যোগ করা হয়েছে: রিডিং পেজ অথবা নির্দিষ্ট পেজগুলোতে ফুটার দেখানো হবে না */}
+   {!isReadingPage && !hideFooterOnSpecificPages && <Footer />}
+   
+  </div>
+ );
 };
 
 export default Root;
