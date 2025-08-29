@@ -6,6 +6,8 @@ import { IoSend } from 'react-icons/io5';
 import { FaRegSmile, FaRegStickyNote } from 'react-icons/fa';
 import EmojiPicker from 'emoji-picker-react';
 import { motion } from 'framer-motion';
+import { useRef } from 'react';
+import useUserProfile from './../../hooks/useUserProfile';
 
 const stickers = [ 
     'https://i.ibb.co/dwPjCTxj/Whats-App-Image-2025-08-03-at-17-29-45-84d16ba4.jpg'
@@ -13,11 +15,13 @@ const stickers = [
 
 const CommentInput = ({ postId, parentId = null, onCommentPosted = () => {} }) => {
     const { user } = useAuth();
+    const { data: currentUserProfile } = useUserProfile();
     const queryClient = useQueryClient();
     const [commentText, setCommentText] = useState('');
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showStickerPicker, setShowStickerPicker] = useState(false);
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+    const emojiPickerRef = useRef(null);
     const isDark = theme === 'dark';
 
     // Sync theme with localStorage and data-theme
@@ -42,6 +46,23 @@ const CommentInput = ({ postId, parentId = null, onCommentPosted = () => {} }) =
             observer.disconnect();
         };
     }, []);
+
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+                setShowEmojiPicker(false);
+            }
+        };
+
+        if (showEmojiPicker) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showEmojiPicker]);
 
     const mutation = useMutation({
         mutationFn: (commentData) => axiosSecure.post(`/api/posts/${postId}/comment`, commentData),
@@ -73,21 +94,22 @@ const CommentInput = ({ postId, parentId = null, onCommentPosted = () => {} }) =
     return (
         <div className={`p-4 sm:p-6 ${isDark ? 'bg-gray-900/80 border-white/20' : 'bg-white/80 border-pink-200/50'} backdrop-blur-md border-t sticky bottom-0 z-10`}>
             {showEmojiPicker && (
-                <motion.div
-                    className="mb-4"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    transition={{ duration: 0.3, ease: 'easeOut' }}
-                >
-                    <EmojiPicker
-                        onEmojiClick={(emojiObject) => setCommentText(prev => prev + emojiObject.emoji)}
-                        height={350}
-                        width="100%"
-                        theme={isDark ? 'dark' : 'light'}
-                    />
-                </motion.div>
-            )}
+  <motion.div
+    ref={emojiPickerRef}
+    className="absolute z-50 mb-4 left-0 right-0 pointer-events-auto"
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: 20 }}
+    transition={{ duration: 0.3, ease: 'easeOut' }}
+  >
+    <EmojiPicker
+      onEmojiClick={(emojiObject) => setCommentText(prev => prev + emojiObject.emoji)}
+      height={350}
+      width="100%"
+      theme={isDark ? 'dark' : 'light'}
+    />
+  </motion.div>
+)}
             {showStickerPicker && (
                 <motion.div
                     className={`grid grid-cols-4 sm:grid-cols-6 gap-2 p-4 ${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-pink-200/50'} backdrop-blur-md rounded-xl mb-4 shadow-lg`}
@@ -112,7 +134,11 @@ const CommentInput = ({ postId, parentId = null, onCommentPosted = () => {} }) =
             <form onSubmit={handleCommentSubmit} className="flex items-center gap-3">
                 <div className="avatar flex-shrink-0">
                     <div className={`w-10 h-10 rounded-full ring-2 ring-offset-2 ${isDark ? 'ring-indigo-400/50 ring-offset-gray-900' : 'ring-pink-400/50 ring-offset-white'}`}>
-                        <img src={user?.photoURL} alt="Your avatar" />
+                        <img 
+                            
+                            src={currentUserProfile?.image || user?.photoURL} 
+                            alt="Your avatar" 
+                        />
                     </div>
                 </div>
                 <div className="relative w-full">
